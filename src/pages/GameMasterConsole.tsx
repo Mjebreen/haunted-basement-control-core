@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { useSocket } from '@/contexts/SocketContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import GameTimer from '@/components/GameTimer';
 import CluesList from '@/components/CluesList';
-import PuzzleTracker from '@/components/PuzzleTracker';
 import { 
   Clock, 
   LogOut, 
@@ -137,15 +135,7 @@ const GameMasterConsole: React.FC = () => {
                     className="py-2 px-4 rounded-md bg-green-700 hover:bg-green-600 text-white flex items-center justify-center"
                   >
                     <ThumbsUp className="h-5 w-5 mr-2" />
-                    Success
-                  </button>
-                  
-                  <button
-                    onClick={() => handleEndGame(false)}
-                    className="col-span-2 py-2 px-4 rounded-md bg-haunted-danger/80 hover:bg-haunted-danger text-white flex items-center justify-center"
-                  >
-                    <AlertTriangle className="h-5 w-5 mr-2" />
-                    Fail Game
+                    End Game
                   </button>
                 </div>
               </div>
@@ -153,15 +143,14 @@ const GameMasterConsole: React.FC = () => {
           </div>
           
           {/* Main content columns */}
-          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="lg:col-span-3">
             <CluesList canSend />
-            <PuzzleTracker canControl />
             
             {/* Game status panel */}
-            <div className="md:col-span-2 haunted-panel rounded-lg p-4">
+            <div className="mt-6 haunted-panel rounded-lg p-4">
               <h2 className="font-gothic text-xl mb-4">Game Status</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-haunted-overlay/40 p-3 rounded-lg">
                   <h3 className="font-gothic text-sm text-gray-300 mb-2">Game State</h3>
                   <p className="text-lg">
@@ -184,17 +173,6 @@ const GameMasterConsole: React.FC = () => {
                       new Date(gameState.startTime).toLocaleTimeString()
                     ) : (
                       <span className="text-gray-400">--:--:--</span>
-                    )}
-                  </p>
-                </div>
-                
-                <div className="bg-haunted-overlay/40 p-3 rounded-lg">
-                  <h3 className="font-gothic text-sm text-gray-300 mb-2">Puzzles Completed</h3>
-                  <p className="text-lg">
-                    {gameState ? (
-                      `${gameState.puzzles.filter(p => p.isCompleted).length} / ${gameState.puzzles.length}`
-                    ) : (
-                      <span className="text-gray-400">0 / 0</span>
                     )}
                   </p>
                 </div>

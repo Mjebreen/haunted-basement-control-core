@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
+# Haunted Basement Control Core
 
-## Project info
+A real-time multiplayer experience where a Game Master controls the haunted basement experience from their device, while players try to escape using their own devices.
 
-**URL**: https://lovable.dev/projects/7b6f23a3-0353-4117-9aa0-acc5f907bd05
+## Features
 
-## How can I edit this code?
+- **Multi-device gameplay**: One device acts as the Game Master (master), while other devices can join as players
+- **Real-time communication**: All actions and game state changes are instantly synchronized across all connected devices
+- **Game control system**: Start, pause, and control the game timer, send clues, and track puzzle progress
+- **Atmospheric UI**: Dark, haunted theme perfect for escape room scenarios
 
-There are several ways of editing your application.
+## Setup Instructions
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7b6f23a3-0353-4117-9aa0-acc5f907bd05) and start prompting.
+- Node.js (v16 or higher)
+- npm or yarn
+- Network where all devices can communicate (same WiFi network)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourname/haunted-basement-control-core.git
+   cd haunted-basement-control-core
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. Build the application:
+   ```bash
+   npm run build
+   ```
 
-Follow these steps:
+4. Start the server:
+   ```bash
+   npm run server
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+   Alternatively, you can build and start the server in one command:
+   ```bash
+   npm start
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+5. The application will be available at `http://YOUR_SERVER_IP:8080`
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Connecting Devices
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. **Find your server IP address**:
+   - On Mac/Linux: Open terminal and type `ifconfig` or `ip addr show`
+   - On Windows: Open command prompt and type `ipconfig`
+   - Look for your local network IP address (usually starts with 192.168.x.x or 10.0.x.x)
+
+2. **Connect the Master device (phone)**:
+   - Open a browser on your phone and navigate to `http://YOUR_SERVER_IP:8080/master`
+   - Log in with the master credentials
+   - Now your phone is the Game Master controller
+
+3. **Connect Player devices (Firestick)**:
+   - Open a browser on the Firestick and navigate to `http://YOUR_SERVER_IP:8080`
+   - This will load the player view automatically
+   - The player view will show "Awaiting Game Start" until the Game Master starts the game
+
+### Using the Application
+
+#### Game Master Controls (Phone)
+- **Start Game**: Set the game duration and start the timer
+- **Send Clues**: Send hints to the players
+- **Puzzles**: Mark puzzles as completed as players progress
+- **Game Controls**: Pause, resume, add time, or end the game
+
+#### Player View (Firestick)
+- Shows a countdown timer
+- Displays received clues
+- Shows puzzle completion progress
+- Displays success or failure screen at the end of the game
+
+## Troubleshooting
+
+If devices can't connect:
+1. Make sure all devices are on the same network
+2. Check firewall settings to ensure port 8080 is open
+3. Try restarting the server
+4. Verify you're using the correct IP address
+
+## Development
+
+To run the application in development mode:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## License
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/7b6f23a3-0353-4117-9aa0-acc5f907bd05) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+[MIT License](LICENSE)
