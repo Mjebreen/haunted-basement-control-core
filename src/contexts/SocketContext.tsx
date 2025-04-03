@@ -73,6 +73,16 @@ const SocketContext = createContext<SocketContextType>({
   endGame: () => {},
 });
 
+// Determine the socket URL based on the current environment
+const getSocketUrl = () => {
+  // In production, we'll use the current hostname
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.hostname;
+  const port = window.location.port ? `:${window.location.port}` : '';
+  
+  return `${protocol}//${host}${port}`;
+};
+
 // For development, use a mocked socket for local testing
 // In production, this would connect to the actual server
 const createMockSocket = () => {
@@ -114,8 +124,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     // For development, use a mocked socket to simulate connection
-    // In production, you'd connect to your actual Socket.IO server
-    //const newSocket = io('http://localhost:3001');
+    // In production, you'd connect to your actual Socket.IO server using the dynamic URL
+    
+    // Uncomment this line to use a real socket in production
+    // const newSocket = io(getSocketUrl());
+    
+    // Using mock socket for demonstration
     const newSocket = createMockSocket();
     
     setSocket(newSocket);
