@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Special+Elite&display=swap');
 
 @tailwind base;
@@ -7,19 +6,19 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 0 100% 25%;
+    --accent: 0 100% 50%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 271 91% 65%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 271 91% 65%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -34,11 +33,11 @@
   }
   
   body {
-    @apply bg-haunted text-haunted-foreground antialiased;
+    @apply bg-black text-white antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
     min-height: 100vh;
     background-image: url('/images/haunted-texture.png');
-    background-color: #1A1F2C;
+    background-color: #000000;
     background-blend-mode: overlay;
   }
 
@@ -69,12 +68,25 @@
   }
 
   .ghost-input {
-    @apply bg-haunted-overlay/30 border border-haunted-accent/40 text-white 
+    @apply bg-black/60 border border-haunted-accent/40 text-white 
     px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-haunted-accent/50;
   }
 
   .spinner {
     @apply animate-spin inline-block w-6 h-6 border-4 border-haunted-accent/20 
     border-t-haunted-accent rounded-full;
+  }
+  
+  .bloody-border {
+    @apply border-2 border-haunted-accent/70;
+  }
+
+  .bloody-button {
+    @apply bg-haunted-accent hover:bg-haunted-highlight transition-colors duration-300 text-white 
+    py-2 px-4 rounded-md shadow-md hover:shadow-lg active:shadow-inner;
+  }
+
+  .blood-text {
+    @apply text-haunted-accent font-bold;
   }
 }
