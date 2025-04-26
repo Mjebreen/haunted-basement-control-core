@@ -13,17 +13,27 @@ import {
   ThumbsUp, 
   Settings,
   User,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Type,
+  MessageSquare,
+  Monitor
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const GameMasterConsole: React.FC = () => {
-  const { gameState, startGame, resetGame, endGame } = useSocket();
+  const { gameState, startGame, resetGame, endGame, updateDisplaySettings } = useSocket();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showStartDialog, setShowStartDialog] = useState(false);
+  const [showDisplaySettingsDialog, setShowDisplaySettingsDialog] = useState(false);
   const [gameDuration, setGameDuration] = useState(60);
+  const [fontSize, setFontSize] = useState<number>(
+    gameState?.displaySettings?.fontSize || 100
+  );
+  const [hintSize, setHintSize] = useState<number>(
+    gameState?.displaySettings?.hintSize || 100
+  );
 
   const handleLogout = () => {
     logout();
@@ -62,6 +72,11 @@ const GameMasterConsole: React.FC = () => {
       title: "Link Copied",
       description: "Player view URL copied to clipboard",
     });
+  };
+
+  const handleDisplaySettingsSubmit = () => {
+    updateDisplaySettings({ fontSize, hintSize });
+    setShowDisplaySettingsDialog(false);
   };
 
   return (
@@ -138,6 +153,14 @@ const GameMasterConsole: React.FC = () => {
                     End Game
                   </button>
                 </div>
+
+                <button
+                  onClick={() => setShowDisplaySettingsDialog(true)}
+                  className="w-full py-2 px-4 rounded-md bg-haunted-secondary hover:bg-haunted-accent/80 text-white flex items-center justify-center"
+                >
+                  <Monitor className="h-5 w-5 mr-2" />
+                  Display Settings
+                </button>
               </div>
             </div>
           </div>
@@ -218,6 +241,75 @@ const GameMasterConsole: React.FC = () => {
                 className="flex-1 py-2 px-4 bg-green-700 hover:bg-green-600 text-white rounded-md"
               >
                 Start Game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Display Settings Dialog */}
+      {showDisplaySettingsDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="haunted-panel rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-gothic mb-4 flex items-center">
+              <Monitor className="h-5 w-5 mr-2 text-haunted-accent" />
+              Player Display Settings
+            </h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="flex items-center mb-2 text-gray-300">
+                  <Type className="h-4 w-4 mr-2" />
+                  Font Size: {fontSize}%
+                </label>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-400">50%</span>
+                  <input
+                    type="range"
+                    min="50"
+                    max="200"
+                    step="5"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(parseInt(e.target.value))}
+                    className="flex-grow ghost-input"
+                  />
+                  <span className="text-sm text-gray-400">200%</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center mb-2 text-gray-300">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Hint Size: {hintSize}%
+                </label>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-400">50%</span>
+                  <input
+                    type="range"
+                    min="50"
+                    max="200"
+                    step="5"
+                    value={hintSize}
+                    onChange={(e) => setHintSize(parseInt(e.target.value))}
+                    className="flex-grow ghost-input"
+                  />
+                  <span className="text-sm text-gray-400">200%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowDisplaySettingsDialog(false)}
+                className="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDisplaySettingsSubmit}
+                className="flex-1 py-2 px-4 bg-haunted-accent hover:bg-haunted-highlight text-white rounded-md"
+              >
+                Apply
               </button>
             </div>
           </div>

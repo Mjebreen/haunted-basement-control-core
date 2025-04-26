@@ -1,16 +1,32 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '@/contexts/SocketContext';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Trash2 } from 'lucide-react';
 
 interface CluesListProps {
   canSend?: boolean;
+  hintSize?: number;
 }
 
-const CluesList: React.FC<CluesListProps> = ({ canSend = false }) => {
-  const { gameState, sendClue } = useSocket();
+// Calculate hint font size based on percentage
+const calculateHintFontSize = (sizePercentage: number | undefined) => {
+  // Default to 100% if undefined
+  const size = sizePercentage || 100;
+  
+  // Base font size in px (using rem)
+  const baseFontSize = 1; // 1rem (16px) as base size
+  
+  // Scale according to percentage
+  const scaledSize = (baseFontSize * size) / 100;
+  
+  // Return as rem value
+  return `${scaledSize.toFixed(2)}rem`;
+};
+
+const CluesList: React.FC<CluesListProps> = ({ canSend = false, hintSize = 100 }) => {
+  const { gameState, sendClue, deleteClue } = useSocket();
   const [newClue, setNewClue] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const cluesContainerRef = useRef<HTMLDivElement>(null);
 
   // Handle new clues animation
   useEffect(() => {
@@ -25,6 +41,11 @@ const CluesList: React.FC<CluesListProps> = ({ canSend = false }) => {
         const clueSound = document.getElementById('clueSound') as HTMLAudioElement;
         if (clueSound) {
           clueSound.play().catch(e => console.error('Failed to play sound:', e));
+        }
+        
+        // Scroll to top to show newest message
+        if (cluesContainerRef.current) {
+          cluesContainerRef.current.scrollTop = 0;
         }
         
         // End animation after 3 seconds
@@ -46,13 +67,7 @@ const CluesList: React.FC<CluesListProps> = ({ canSend = false }) => {
   };
 
   // Presets for quick clues
-  const presetClues = [
-    "Look more carefully at the bookshelf",
-    "Remember to check under objects",
-    "The symbols need to be arranged in the correct order",
-    "Think about the riddle - what connects all the items?",
-    "The key is hidden in plain sight"
-  ];
+  const presetClues = [];
 
   if (!gameState) {
     return (
@@ -62,36 +77,57 @@ const CluesList: React.FC<CluesListProps> = ({ canSend = false }) => {
     );
   }
 
+  // Calculate font size based on percentage in props or gameState
+  const fontSize = calculateHintFontSize(hintSize);
+  const headerFontSize = calculateHintFontSize(hintSize ? hintSize * 1.1 : 110); // Slightly larger for header
+
   return (
     <div className="glass-card p-4 rounded-lg flex flex-col min-h-[16rem] max-h-[24rem]">
       <div className="flex items-center mb-4">
         <MessageCircle className="h-5 w-5 mr-2 text-haunted-accent" />
-        <h3 className="text-lg font-gothic text-white">
+        <h3 className="font-gothic text-white" style={{ fontSize: headerFontSize }}>
           {canSend ? "Send Clues" : "Clues & Hints"}
         </h3>
       </div>
 
       {/* Clues area */}
-      <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-haunted-accent/30 scrollbar-track-transparent pr-2 space-y-3">
+      <div 
+        ref={cluesContainerRef}
+        className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-haunted-accent/30 scrollbar-track-transparent pr-2 space-y-3"
+      >
         {gameState.clues.length === 0 ? (
-          <p className="text-gray-400 text-center italic py-8">
+          <p className="text-gray-400 text-center italic py-8" style={{ fontSize }}>
             {canSend ? "No clues sent yet..." : "No clues received yet..."}
           </p>
         ) : (
           <>
-            {gameState.clues.map((clue) => (
+            {[...gameState.clues].reverse().map((clue) => (
               <div 
                 key={clue.id} 
                 className={`p-3 rounded-lg ${
-                  isAnimating && clue === gameState.clues[gameState.clues.length - 1]
+                  isAnimating && clue.id === gameState.clues[gameState.clues.length - 1].id
                     ? 'bg-haunted-accent/30 animate-pulse-subtle'
                     : 'bg-haunted-overlay/40'
                 }`}
               >
-                <p className="text-white">{clue.message}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {new Date(clue.sentAt).toLocaleTimeString()}
-                </p>
+                <div className="flex flex-col w-full">
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="text-white" style={{ fontSize }}>{clue.message}</p>
+                    {canSend && (
+                      <button 
+                        onClick={() => deleteClue(clue.id)}
+                        className="flex items-center bg-haunted-danger/40 hover:bg-haunted-danger px-2 py-1 rounded text-white text-xs ml-2 shrink-0"
+                        title="Delete hint"
+                      >
+                        <Trash2 size={14} className="mr-1" />
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {new Date(clue.sentAt).toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
             ))}
           </>
@@ -101,18 +137,20 @@ const CluesList: React.FC<CluesListProps> = ({ canSend = false }) => {
       {/* Input area - only for GM console */}
       {canSend && (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {presetClues.map((clue, index) => (
-              <button
-                key={index}
-                onClick={() => sendClue(clue)}
-                className="text-xs py-1 px-2 bg-haunted-secondary/50 hover:bg-haunted-secondary text-white rounded truncate text-left"
-                title={clue}
-              >
-                {clue.length > 25 ? `${clue.substring(0, 22)}...` : clue}
-              </button>
-            ))}
-          </div>
+          {presetClues.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {presetClues.map((clue, index) => (
+                <button
+                  key={index}
+                  onClick={() => sendClue(clue)}
+                  className="text-xs py-1 px-2 bg-haunted-secondary/50 hover:bg-haunted-secondary text-white rounded truncate text-left"
+                  title={clue.toString()}
+                >
+                  {clue.length > 25 ? `${clue.substring(0, 22)}...` : clue.toString()}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSendClue} className="mt-4 flex">
             <input

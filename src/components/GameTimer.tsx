@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSocket } from '@/contexts/SocketContext';
 import { Clock } from 'lucide-react';
 
@@ -8,10 +7,42 @@ interface GameTimerProps {
   showControls?: boolean;
 }
 
+// Calculate styles based on numeric font size
+const calculateTimerFontSize = (sizePercentage: number | undefined, large: boolean) => {
+  // Default to 100% if undefined
+  const size = sizePercentage || 100;
+  
+  // Base font size in px (using rem)
+  const baseFontSize = large ? 3 : 1.5; // 3rem (48px) for large, 1.5rem (24px) for normal
+  
+  // Scale according to percentage
+  const scaledSize = (baseFontSize * size) / 100;
+  
+  // Return as rem value
+  return `${scaledSize.toFixed(2)}rem`;
+};
+
+// Calculate clock icon size based on numeric font size
+const calculateClockIconSize = (sizePercentage: number | undefined, large: boolean) => {
+  // Default to 100% if undefined
+  const size = sizePercentage || 100;
+  
+  // Base icon size in px
+  const baseIconSize = large ? 32 : 20; // 32px for large, 20px for normal
+  
+  // Scale according to percentage
+  const scaledSize = (baseIconSize * size) / 100;
+  
+  // Return as px value
+  return `${Math.round(scaledSize)}px`;
+};
+
 const GameTimer: React.FC<GameTimerProps> = ({ large = false, showControls = false }) => {
   const { gameState, pauseGame, resumeGame, addTime } = useSocket();
   const [displayTime, setDisplayTime] = useState('60:00');
   const [isRunning, setIsRunning] = useState(false);
+  const [hasPlayedWarning, setHasPlayedWarning] = useState(false);
+  const warningAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!gameState) return;
@@ -22,6 +53,20 @@ const GameTimer: React.FC<GameTimerProps> = ({ large = false, showControls = fal
     const minutes = Math.floor(gameState.timeRemaining / 60);
     const seconds = Math.floor(gameState.timeRemaining % 60);
     setDisplayTime(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    
+    // Check for 5-minute warning
+    if (gameState.isActive && gameState.timeRemaining <= 300 && gameState.timeRemaining > 295 && !hasPlayedWarning) {
+      // Play warning sound
+      if (warningAudioRef.current) {
+        warningAudioRef.current.play().catch(e => console.error('Failed to play sound:', e));
+        setHasPlayedWarning(true);
+      }
+    }
+    
+    // Reset warning flag if time goes back above 5 minutes
+    if (gameState.timeRemaining > 300) {
+      setHasPlayedWarning(false);
+    }
     
     // Set up the timer
     let interval: NodeJS.Timeout | null = null;
@@ -51,7 +96,7 @@ const GameTimer: React.FC<GameTimerProps> = ({ large = false, showControls = fal
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [gameState]);
+  }, [gameState, hasPlayedWarning]);
 
   // Determine timer status styles and classes
   const getTimerStyle = () => {
@@ -78,11 +123,21 @@ const GameTimer: React.FC<GameTimerProps> = ({ large = false, showControls = fal
     );
   }
 
+  // Calculate font size and icon size based on percentage in gameState
+  const fontSize = calculateTimerFontSize(gameState.displaySettings?.fontSize, large);
+  const clockIconSize = calculateClockIconSize(gameState.displaySettings?.fontSize, large);
+
   return (
     <div className={`flex flex-col items-center ${large ? 'space-y-4' : 'space-y-2'}`}>
       <div className="flex items-center justify-center space-x-2">
-        <Clock className={`${large ? 'h-8 w-8' : 'h-5 w-5'} ${getTimerStyle()}`} />
-        <span className={`font-mono font-bold ${large ? 'text-5xl' : 'text-2xl'} ${getTimerStyle()}`}>
+        <Clock 
+          className={`${getTimerStyle()}`} 
+          style={{ width: clockIconSize, height: clockIconSize }}
+        />
+        <span 
+          className={`font-mono font-bold ${getTimerStyle()}`}
+          style={{ fontSize }}
+        >
           {displayTime}
         </span>
       </div>
@@ -127,6 +182,9 @@ const GameTimer: React.FC<GameTimerProps> = ({ large = false, showControls = fal
           </button>
         </div>
       )}
+      
+      {/* Audio elements */}
+      <audio ref={warningAudioRef} src="/sounds/five-minute-warning.mp3" preload="auto" />
     </div>
   );
 };

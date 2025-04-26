@@ -26,6 +26,10 @@ const defaultGameState = {
   startTime: null,
   endTime: null,
   clues: [],
+  displaySettings: {
+    fontSize: 100, // Numeric font size value (percentage)
+    hintSize: 100  // Numeric font size value (percentage)
+  }
 };
 
 // The current game state that will be updated and shared
@@ -141,6 +145,27 @@ io.on('connection', (socket) => {
     gameState = {
       ...gameState,
       clues: [...gameState.clues, newClue]
+    };
+    
+    io.emit('gameState', gameState);
+  });
+  
+  socket.on('deleteClue', ({ clueId }) => {
+    gameState = {
+      ...gameState,
+      clues: gameState.clues.filter(clue => clue.id !== clueId)
+    };
+    
+    io.emit('gameState', gameState);
+  });
+  
+  socket.on('updateDisplaySettings', ({ fontSize, hintSize }) => {
+    gameState = {
+      ...gameState,
+      displaySettings: {
+        fontSize: fontSize !== undefined ? fontSize : gameState.displaySettings.fontSize,
+        hintSize: hintSize !== undefined ? hintSize : gameState.displaySettings.hintSize
+      }
     };
     
     io.emit('gameState', gameState);

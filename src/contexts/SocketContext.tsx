@@ -9,6 +9,10 @@ export interface GameState {
   startTime: number | null; // timestamp
   endTime: number | null; // timestamp
   clues: Clue[];
+  displaySettings: {
+    fontSize: number; // percentage (100 = 100%)
+    hintSize: number; // percentage (100 = 100%)
+  };
 }
 
 export interface Clue {
@@ -24,12 +28,14 @@ interface SocketContextType {
   gameState: GameState | null;
   error: string | null;
   sendClue: (message: string) => void;
+  deleteClue: (clueId: string) => void;
   startGame: (duration: number) => void;
   pauseGame: () => void;
   resumeGame: () => void;
   addTime: (seconds: number) => void;
   resetGame: () => void;
   endGame: (success: boolean) => void;
+  updateDisplaySettings: (settings: {fontSize?: number, hintSize?: number}) => void;
 }
 
 // Default game state
@@ -39,6 +45,10 @@ const defaultGameState: GameState = {
   startTime: null,
   endTime: null,
   clues: [],
+  displaySettings: {
+    fontSize: 100,
+    hintSize: 100
+  }
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -47,12 +57,14 @@ const SocketContext = createContext<SocketContextType>({
   gameState: null,
   error: null,
   sendClue: () => {},
+  deleteClue: () => {},
   startGame: () => {},
   pauseGame: () => {},
   resumeGame: () => {},
   addTime: () => {},
   resetGame: () => {},
   endGame: () => {},
+  updateDisplaySettings: () => {},
 });
 
 // Determine the socket URL based on the current environment
@@ -125,6 +137,18 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toast({
       title: "Clue sent",
       description: `"${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`,
+    });
+  };
+
+  const deleteClue = (clueId: string) => {
+    if (!socket || !isConnected) return;
+    
+    // Emit delete clue event to the server
+    socket.emit('deleteClue', { clueId });
+    
+    toast({
+      title: "Clue deleted",
+      description: "The hint has been removed",
     });
   };
 
@@ -203,6 +227,18 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
+  const updateDisplaySettings = (settings: {fontSize?: number, hintSize?: number}) => {
+    if (!socket || !isConnected) return;
+    
+    // Emit update display settings event to the server
+    socket.emit('updateDisplaySettings', settings);
+    
+    toast({
+      title: "Display Settings Updated",
+      description: "Player view display settings have been updated",
+    });
+  };
+
   // Utility function to format time
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -218,12 +254,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         gameState,
         error,
         sendClue,
+        deleteClue,
         startGame,
         pauseGame,
         resumeGame,
         addTime,
         resetGame,
         endGame,
+        updateDisplaySettings,
       }}
     >
       {children}
